@@ -1,0 +1,15 @@
+# Ignore all .log files
+*.log
+
+# Ignore the 'temp' directory
+temp/
+
+# Ignore the 'node_modules' directory (common for Node.js projects)
+node_modules/
+
+# Ignore a specific configuration file
+config.local.js
+
+# Ignore operating system generated files
+.DS_Store
+Thumbs.db
