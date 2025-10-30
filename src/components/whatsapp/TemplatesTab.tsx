@@ -141,58 +141,60 @@ export const TemplatesTab = () => {
 
       {/* Table */}
       <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Language</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Category</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredTemplates.map((template) => (
-              <motion.tr key={template.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <td className="px-6 py-4 font-medium text-gray-900">{template.name}</td>
-                <td className="px-6 py-4 text-gray-700">{template.language}</td>
-                <td className="px-6 py-4">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                    {template.category}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(template.status)}`}>
-                    {template.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => openPreview(template)}
-                    className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </motion.button>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="max-h-96 overflow-y-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Language</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Category</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredTemplates.map((template) => (
+                <motion.tr key={template.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <td className="px-6 py-4 font-medium text-gray-900">{template.name}</td>
+                  <td className="px-6 py-4 text-gray-700">{template.language}</td>
+                  <td className="px-6 py-4">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                      {template.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(template.status)}`}>
+                      {template.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => openPreview(template)}
+                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </motion.button>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Create Template Modal */}
       <AnimatePresence>
         <AnimatePresence>
-  {showModal && (
-    <CreateTemplateModal
-      show={showModal}
-      setShow={setShowModal}
-      onSuccess={fetchTemplates} // refresh templates after creation
-    />
-  )}
-</AnimatePresence>
+          {showModal && (
+            <CreateTemplateModal
+              show={showModal}
+              setShow={setShowModal}
+              onSuccess={fetchTemplates} // refresh templates after creation
+            />
+          )}
+        </AnimatePresence>
       </AnimatePresence>
 
       {/* Preview Modal */}

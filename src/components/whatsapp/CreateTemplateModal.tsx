@@ -951,18 +951,35 @@ export default function CreateTemplateModal({ show, setShow, onSuccess }: any) {
                             Buttons <span className="text-gray-500 font-normal text-sm">• Optional</span>
                           </h3>
 
-                          <select
-                            value={form.buttonType}
-                            onChange={(e) => {
-                              handleChange("buttonType", e.target.value);
-                              handleChange("buttons", []);
-                            }}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
-                          >
-                            {buttonTypes.map((type) => (
-                              <option key={type.value} value={type.value}>{type.label}</option>
-                            ))}
-                          </select>
+                          
+                        <select
+                          value={form.buttonType}
+                          onChange={(e) => {
+                            handleChange("buttonType", e.target.value);
+                            handleChange("buttons", []);
+                          }}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+                        >
+                          {buttonTypes.map((type) => (
+                            <option key={type.value} value={type.value}>{type.label}</option>
+                          ))}
+                        </select>
+
+                          {form.buttonType === "CALL_TO_ACTION" && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                            <p className="text-xs text-blue-800">
+                              <strong>Call to Action buttons:</strong> Add clickable buttons with phone numbers or website links. Users can tap to call or visit your website.
+                            </p>
+                          </div>
+                        )}
+
+                        {form.buttonType === "QUICK_REPLY" && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                            <p className="text-xs text-blue-800">
+                              <strong>Quick Reply buttons:</strong> Add up to 3 quick response options for users to tap and reply instantly.
+                            </p>
+                          </div>
+                        )}
 
                           {form.buttonType !== "NONE" && (
                             <div className="space-y-3">

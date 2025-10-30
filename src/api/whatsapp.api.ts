@@ -11,6 +11,35 @@ const addContacts = async (data: any): Promise<any | null> => {
     }
 };
 
+const exportContacts = async (format: string = 'csv'): Promise<string> => {
+    const response = await http.get(`/whatsapp/contacts/export`, {
+        params: { format: format },
+        responseType: 'text', // important
+    });
+    return response.data;
+};
+
+
+const importContacts = async (file: any): Promise<any | null> => {
+    try {
+
+        const formData = new FormData();
+        formData.append('file', file); // must match uploadFile.single('file')
+
+        const response = await http.post(`/whatsapp/contacts/import`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        return response.data.responseObject;
+    } catch (error: any) {
+        throw error?.response?.data?.message || 'Something Went Wrong';
+    }
+};
+
+
+
 const updateContacts = async (id: number, data: any): Promise<any | null> => {
     try {
         const response = await http.put(`/whatsapp/update-contacts/` + id, data);
@@ -48,7 +77,7 @@ const fetchContactsList = async (page = 1, limit = 10, search: string = ''): Pro
 
 export const Chat = {
     // 🚀 Send a message
-    sendMessage: async (data: { contactId: number; messageType?: string; content: string }) => {
+    sendMessage: async (data: any) => {
         const res = await http.post("/whatsapp/send", data);
         return res.data;
     },
@@ -131,7 +160,7 @@ const getGroupDetails = async (groupId: string) => {
     return res.data;
 };
 
-const createGroup = async (payload: { subject: string; participants: string[] , description : string }) => {
+const createGroup = async (payload: { subject: string; participants: string[], description: string }) => {
     const res = await http.post(`/whatsapp/groups/create`, payload);
     return res.data;
 };
@@ -169,7 +198,7 @@ const updateGroupSettings = async (groupId: string, payload: { announcementMode?
 const updateGroupIcon = async (groupId: string, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const res = await http.put(`/whatsapp/groups/${groupId}/icon`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
@@ -191,15 +220,15 @@ const getGroupChatHistory = async (groupId: string, page = 1, limit = 50) => {
 };
 
 const getNewLeads = async (params: any, download = false) => {
-  const config: any = { params };
-  
-  // If downloading, set responseType to 'blob'
-  if (download) {
-    config.responseType = "blob";
-  }
+    const config: any = { params };
 
-  const res = await http.get(`/whatsapp/new_leads${download ? "?download=true" : ""}`, config);
-  return res.data;
+    // If downloading, set responseType to 'blob'
+    if (download) {
+        config.responseType = "blob";
+    }
+
+    const res = await http.get(`/whatsapp/new_leads${download ? "?download=true" : ""}`, config);
+    return res.data;
 };
 
 
@@ -308,6 +337,8 @@ const Campaign = {
 export const WAApi = {
     fetchContactsList,
     addContacts,
+    exportContacts,
+    importContacts,
     updateContacts,
     deleteContacts,
     downloadMedia,

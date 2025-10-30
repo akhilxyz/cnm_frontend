@@ -57,7 +57,7 @@ const NewLeads: React.FC = () => {
             const { responseObject } = await WAApi.getNewLeads(params);
             if (responseObject.data) {
                 setLeads(responseObject.data);
-                setTotalPages(responseObject.totalPages);
+                setTotalPages(responseObject.total);
             }
         } catch (err) {
             console.error(err);
@@ -86,7 +86,7 @@ const NewLeads: React.FC = () => {
                 </div>
 
                 {/* Download CSV Button */}
-               
+
                 <div className="flex gap-2 flex-wrap">
                     <input
                         type="date"
@@ -110,7 +110,7 @@ const NewLeads: React.FC = () => {
                     </motion.button>
                 </div>
 
-                 <motion.button
+                <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleDownloadCSV}

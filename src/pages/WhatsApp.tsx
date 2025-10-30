@@ -44,9 +44,47 @@ export const WhatsApp = () => {
 
 
   if (loading) {
-    return <div className="flex flex-col items-center justify-center h-64 gap-3">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500"></div>
+    return <div className="p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-lg overflow-hidden max-h-[80vh] flex flex-col"
+      >
+        {/* Sticky Tab Header */}
+        <div className="border-b border-gray-200 sticky top-0 bg-white z-10">
+          <div className="flex">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-semibold transition-all relative ${activeTab === tab.id
+                    ? 'text-emerald-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-emerald-600"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center h-64 gap-3">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500"></div>
+        </div>
+      </motion.div>
     </div>
+
+
   }
 
   if (!isWAConnected) {
@@ -114,7 +152,7 @@ export const WhatsApp = () => {
           </div>
         </div>
 
-        <div className="overflow-y-auto p-4 flex-1">
+        <div className="p-4 flex-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

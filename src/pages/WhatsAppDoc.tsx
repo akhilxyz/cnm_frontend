@@ -91,7 +91,7 @@ const WhatsappSetupGuide = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-6 max-h-96 overflow-y-auto scrollbar-hide">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
