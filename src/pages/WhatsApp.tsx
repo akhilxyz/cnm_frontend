@@ -122,7 +122,7 @@ export const WhatsApp = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg overflow-hidden max-h-[80vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col"
       >
         {/* Sticky Tab Header */}
         <div className="border-b border-gray-200 sticky top-0 bg-white z-10">

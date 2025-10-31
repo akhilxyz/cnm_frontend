@@ -96,9 +96,9 @@ const AppContent = () => {
         position="top-center"
         reverseOrder={false}
       />
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hide ">
         <Sidebar currentPage={currentPage} onNavigate={(page) => setCurrentPage(page as Page)} />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-hide ">
           {renderPage()}
           <Footer />
         </main>

@@ -131,19 +131,58 @@ export const Campaigns = () => {
     if (template) {
       // Initialize components with empty parameters based on template structure
       const initialComponents = template.components.map((comp: any) => {
+        // Handle BODY component with placeholders
         if (comp.type === 'BODY' && comp.text) {
-          // Count placeholders in template text
           const placeholderCount = (comp.text.match(/\{\{(\d+)\}\}/g) || []).length;
           return {
-            type: comp.type,
+            type: 'BODY',
             parameters: Array(placeholderCount).fill(null).map(() => ({ type: 'text', text: '' }))
           };
         }
-        return {
-          type: comp.type,
-          parameters: []
-        };
-      });
+        
+        // Handle HEADER component with placeholders
+        if (comp.type === 'HEADER') {
+          if (comp.format === 'TEXT' && comp.text) {
+            const placeholderCount = (comp.text.match(/\{\{(\d+)\}\}/g) || []).length;
+            if (placeholderCount > 0) {
+              return {
+                type: 'HEADER',
+                parameters: Array(placeholderCount).fill(null).map(() => ({ type: 'text', text: '' }))
+              };
+            }
+          }
+          // For IMAGE, VIDEO, DOCUMENT headers
+          if (['IMAGE', 'VIDEO', 'DOCUMENT'].includes(comp.format)) {
+            return {
+              type: 'HEADER',
+              parameters: [{
+                type: comp.format.toLowerCase(),
+                [comp.format.toLowerCase()]: { link: '' }
+              }]
+            };
+          }
+        }
+        
+        // Handle BUTTONS - convert to BUTTON (singular) for each button
+        if (comp.type === 'BUTTONS' && comp.buttons) {
+          // Return array of BUTTON components (one for each button)
+          return comp.buttons.map((button: any, index: number) => {
+            if (button.type === 'URL' && button.url?.includes('{{1}}')) {
+              // Dynamic URL button
+              return {
+                type: 'BUTTON',
+                sub_type: 'URL',
+                index: index.toString(),
+                parameters: [{ type: 'text', text: '' }]
+              };
+            }
+            return null;
+          }).filter(Boolean);
+        }
+        
+        // Skip FOOTER and static components (no parameters needed)
+        return null;
+      }).flat().filter(Boolean);
 
       setFormData({
         ...formData,

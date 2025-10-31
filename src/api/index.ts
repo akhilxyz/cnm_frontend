@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useAuthStore } from "../store/useAuthStore";
 
-export const BASE_URL = "https://api.cnmacademy.in/api"
-// export const BASE_URL = "http://localhost:3001/api"
+// export const BASE_URL = "https://api.cnmacademy.in/api"
+export const BASE_URL = "http://localhost:3004/api"
 
 // Create Axios instance
 export const http = axios.create({
@@ -16,14 +16,17 @@ export const http = axios.create({
 http.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401)
+    if (error.response?.status === 401 ||error.response?.status === 403)
       { 
         const logout = useAuthStore.getState().logout;
         logout()
-    ;}else {
+    ;}
+    else {
       throw error
     }
   }
+
+  // 403
 );
 
 http.interceptors.request.use((config) => {

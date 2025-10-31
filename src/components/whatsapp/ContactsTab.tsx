@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 
 export interface Contact {
   id: number;
+  tag : string;
   whatsappAccountId: number;
   name: string;
   phoneNumber: string;
@@ -28,12 +29,13 @@ export const ContactsTab = () => {
   const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
   const [showError, setShowError] = useState('');
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [formData, setFormData] = useState({ name: '', phoneNumber: '', countryCode: '' });
+  const [formData, setFormData] = useState({ name: '', phoneNumber: '', countryCode: '', tag : '' });
   const [page, setPage] = useState(1);
   const [limit] = useState(7);
   const [total, setTotal] = useState(0);
   const totalPages = Math.ceil(total / limit);
   const [loading, setLoading] = useState(false);
+  const [loadingAdded, setLoadingAdded] = useState(false);
 
 
   const [showImportModal, setShowImportModal] = useState(false);
@@ -170,11 +172,13 @@ export const ContactsTab = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoadingAdded(true)
     try {
       const payload = {
         phone_number: formData.phoneNumber,
         name: formData.name,
         country_code: formData.countryCode,
+        // tag : formData?.tag ?? ''
       };
 
       if (editingContact) {
@@ -186,10 +190,12 @@ export const ContactsTab = () => {
       await fetchContacts();
       setShowModal(false);
       setEditingContact(null);
-      setFormData({ name: '', phoneNumber: '', countryCode: '' });
+      setFormData({ name: '', phoneNumber: '', countryCode: '' , tag : ''});
     } catch (error: any) {
       setShowError(error.message || 'Something went wrong');
     }
+    setLoadingAdded(false)
+
   };
 
   const openDeleteDialog = (contact: Contact) => {
@@ -218,13 +224,14 @@ export const ContactsTab = () => {
       name: contact.name,
       phoneNumber: contact.phoneNumber,
       countryCode: contact.countryCode || '',
+      tag : contact.tag || ''
     });
     setShowModal(true);
   };
 
   const openAddModal = () => {
     setEditingContact(null);
-    setFormData({ name: '', phoneNumber: '', countryCode: '' });
+    setFormData({ name: '', phoneNumber: '', countryCode: '' , tag : ''});
     setShowModal(true);
   };
 
@@ -730,6 +737,21 @@ Bob Johnson,5551234567,+44`}
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tag (optional)</label>
+                  <input
+                    type="text"
+                    value={formData.tag}
+                    onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none 
+                      ${editingContact
+                        ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300"
+                        : "border-gray-200"
+                      }`}
+                    required
+                  />
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Country Code
                   </label>
@@ -759,25 +781,44 @@ Bob Johnson,5551234567,+44`}
                   </motion.div>
                 )}
 
-                <div className="flex gap-3 pt-4">
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    type="submit"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-emerald-500/30"
-                  >
-                    {editingContact ? 'Update' : 'Add'}
-                  </motion.button>
-                </div>
+                <motion.button
+  type="submit"
+  whileHover={{ scale: loadingAdded ? 1 : 1.02 }}
+  whileTap={{ scale: loadingAdded ? 1 : 0.98 }}
+  disabled={loadingAdded}
+  className={`flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-emerald-500/30 ${
+    loadingAdded ? 'opacity-80 cursor-not-allowed' : ''
+  }`}
+>
+  {loadingAdded ? (
+    <>
+      <svg
+        className="w-5 h-5 animate-spin text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        ></circle>
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        ></path>
+      </svg>
+      <span>Processing...</span>
+    </>
+  ) : (
+    <span>{editingContact ? 'Update' : 'Add'}</span>
+  )}
+</motion.button>
+
               </form>
             </motion.div>
           </motion.div>
