@@ -1,8 +1,8 @@
 import axios from "axios";
 import { useAuthStore } from "../store/useAuthStore";
 
-// export const BASE_URL = "https://api.cnmacademy.in/api"
-export const BASE_URL = "http://localhost:3004/api"
+export const BASE_URL = "https://api.cnmacademy.in/api"
+// export const BASE_URL = "http://localhost:3004/api"
 
 // Create Axios instance
 export const http = axios.create({

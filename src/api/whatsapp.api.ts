@@ -20,12 +20,19 @@ const exportContacts = async (format: string = 'csv'): Promise<string> => {
 };
 
 
-const importContacts = async (file: any): Promise<any | null> => {
+const getContactsTags = async (): Promise<any> => {
+    const response = await http.get(`/whatsapp/contacts/tags`);
+    return response.data;
+};
+
+
+
+const importContacts = async (file: any, tag : string = ""): Promise<any | null> => {
     try {
 
         const formData = new FormData();
         formData.append('file', file); // must match uploadFile.single('file')
-
+        formData.append("tag", tag)
         const response = await http.post(`/whatsapp/contacts/import`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -61,10 +68,10 @@ const deleteContacts = async (id: number): Promise<any | null> => {
 
 
 // /update-contacts/:id
-const fetchContactsList = async (page = 1, limit = 10, search: string = ''): Promise<any | null> => {
+const fetchContactsList = async (page = 1, limit = 10, search : string = '', tag: string = ''): Promise<any | null> => {
     try {
         const response = await http.get(`/whatsapp/contacts-list`, {
-            params: { page, limit, search }
+            params: { page, limit, search ,  tag }
         });
 
         return response.data.responseObject;
@@ -341,6 +348,7 @@ export const WAApi = {
     importContacts,
     updateContacts,
     deleteContacts,
+    getContactsTags,
     downloadMedia,
     uploadMedia,
     getTemplatesList,

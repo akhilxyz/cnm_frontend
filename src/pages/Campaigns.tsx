@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, Calendar, Play, Pause, Trash2, Archive, Eye, X, 
-  Send, BarChart3, Clock, CheckCircle, XCircle, Users, 
-  FileText, Edit, AlertCircle 
+import {
+  Plus, Calendar, Play, Pause, Trash2, Archive, Eye, X,
+  Send, BarChart3, Clock, CheckCircle, XCircle, Users,
+  FileText, Edit, AlertCircle
 } from 'lucide-react';
 import { WAApi } from '../api/whatsapp.api';
 import { toast } from 'react-hot-toast';
@@ -12,6 +12,7 @@ type Tab = 'active' | 'archived';
 
 interface Campaign {
   id: number;
+  tag?: any
   title: string;
   templateName: string;
   languageCode: string;
@@ -60,6 +61,10 @@ export const Campaigns = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalCampaigns, setTotalCampaigns] = useState(0);
+  const [tagsList, setTagsList] = useState([]);
+  const [tag, setTag] = useState<any>("");
+  const [search, setSearch] = useState<any>("");
+
 
   const [formData, setFormData] = useState({
     title: '',
@@ -69,22 +74,50 @@ export const Campaigns = () => {
     components: [] as any[],
     contactIds: [] as number[],
     scheduledAt: '',
+    // tag: ""
   });
 
+
+
   useEffect(() => {
+    if (showModal) {
+      fetchTemplates();
+      fetchContacts();
+    }
+  }, [search, tag, showModal]);
+
+
+
+  useEffect(() => {
+    setCampaigns([]);
+    setTotalCampaigns(0);
     fetchCampaigns();
-    fetchTemplates();
-    fetchContacts();
+
   }, [activeTab, page]);
+
+
+  const fetchTags = async () => {
+    if (showModal) {
+      const { responseObject } = await WAApi.getContactsTags()
+      if (responseObject.data) {
+        setTagsList(responseObject.data)
+      }
+    }
+  }
+
+
+  useEffect(() => {
+    fetchTags()
+  }, [showModal]);
 
   const fetchCampaigns = async () => {
     setLoading(true);
     try {
-      const status = activeTab === 'active' 
-        ? undefined 
+      const status = activeTab === 'active'
+        ? undefined
         : activeTab === 'archived' ? 'completed' : undefined;
-      
-      const {responseObject} = await WAApi.Campaign.list(page, 10, status);
+
+      const { responseObject } = await WAApi.Campaign.list(page, 10, status);
       if (responseObject.data) {
         const filteredCampaigns = responseObject?.data?.filter((c: Campaign) => {
           if (activeTab === 'active') {
@@ -105,7 +138,7 @@ export const Campaigns = () => {
 
   const fetchTemplates = async () => {
     try {
-      const {responseObject} = await WAApi.getTemplatesList();
+      const { responseObject } = await WAApi.getTemplatesList();
       if (responseObject.data) {
         const approvedTemplates = responseObject?.data?.filter((t: any) => t.status === 'APPROVED');
         setTemplates(approvedTemplates);
@@ -117,7 +150,7 @@ export const Campaigns = () => {
 
   const fetchContacts = async () => {
     try {
-      const resp= await WAApi.fetchContactsList(1, 1000);
+      const resp = await WAApi.fetchContactsList(1, 1000, search, tag);
       if (resp.contacts) {
         setContacts(resp.contacts || []);
       }
@@ -139,7 +172,7 @@ export const Campaigns = () => {
             parameters: Array(placeholderCount).fill(null).map(() => ({ type: 'text', text: '' }))
           };
         }
-        
+
         // Handle HEADER component with placeholders
         if (comp.type === 'HEADER') {
           if (comp.format === 'TEXT' && comp.text) {
@@ -162,7 +195,7 @@ export const Campaigns = () => {
             };
           }
         }
-        
+
         // Handle BUTTONS - convert to BUTTON (singular) for each button
         if (comp.type === 'BUTTONS' && comp.buttons) {
           // Return array of BUTTON components (one for each button)
@@ -179,7 +212,7 @@ export const Campaigns = () => {
             return null;
           }).filter(Boolean);
         }
-        
+
         // Skip FOOTER and static components (no parameters needed)
         return null;
       }).flat().filter(Boolean);
@@ -235,13 +268,13 @@ export const Campaigns = () => {
       };
 
       if (editingCampaign) {
-        const {success} = await WAApi.Campaign.update(editingCampaign.id, payload);
+        const { success } = await WAApi.Campaign.update(editingCampaign.id, payload);
         if (success) {
           toast.success('Campaign updated successfully');
           fetchCampaigns();
         }
       } else {
-        const {success} = await WAApi.Campaign.create(payload);
+        const { success } = await WAApi.Campaign.create(payload);
         if (success) {
           toast.success('Campaign created successfully');
           fetchCampaigns();
@@ -262,7 +295,7 @@ export const Campaigns = () => {
     if (confirm('Are you sure you want to delete this campaign?')) {
       setLoading(true);
       try {
-        const {success} = await WAApi.Campaign.delete(campaignId);
+        const { success } = await WAApi.Campaign.delete(campaignId);
         if (success) {
           toast.success('Campaign deleted successfully');
           fetchCampaigns();
@@ -279,7 +312,7 @@ export const Campaigns = () => {
     if (confirm('Send this campaign immediately to all contacts?')) {
       setLoading(true);
       try {
-        const {success} = await WAApi.Campaign.send(campaignId);
+        const { success } = await WAApi.Campaign.send(campaignId);
         if (success) {
           toast.success('Campaign started successfully');
           fetchCampaigns();
@@ -364,6 +397,7 @@ export const Campaigns = () => {
       components: campaign.components,
       contactIds: campaign.contactIds,
       scheduledAt: campaign.scheduledAt ? new Date(campaign.scheduledAt).toISOString().slice(0, 16) : '',
+      // tag: campaign.tag
     });
     setShowModal(true);
   };
@@ -383,6 +417,7 @@ export const Campaigns = () => {
       components: [],
       contactIds: [],
       scheduledAt: '',
+      // tag: ''
     });
   };
 
@@ -453,9 +488,8 @@ export const Campaigns = () => {
           <div className="flex">
             <button
               onClick={() => setActiveTab('active')}
-              className={`flex-1 px-6 py-4 font-semibold transition-all relative ${
-                activeTab === 'active' ? 'text-emerald-600' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 px-6 py-4 font-semibold transition-all relative ${activeTab === 'active' ? 'text-emerald-600' : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Active Campaigns
               {activeTab === 'active' && (
@@ -467,9 +501,8 @@ export const Campaigns = () => {
             </button>
             <button
               onClick={() => setActiveTab('archived')}
-              className={`flex-1 px-6 py-4 font-semibold transition-all relative ${
-                activeTab === 'archived' ? 'text-emerald-600' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex-1 px-6 py-4 font-semibold transition-all relative ${activeTab === 'archived' ? 'text-emerald-600' : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Archived Campaigns
               {activeTab === 'archived' && (
@@ -776,23 +809,24 @@ export const Campaigns = () => {
                   </select>
                 </div>
 
+
                 {/* Template Preview & Parameters */}
                 {formData.templateMeta && (
                   <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                     <h4 className="font-semibold text-gray-900">Template Preview</h4>
-                    
+
                     {formData.templateMeta.components.map((comp: any, compIndex: number) => (
                       <div key={compIndex} className="space-y-2">
                         {comp.type === 'HEADER' && (
                           <div className="font-medium text-gray-900">{comp.text}</div>
                         )}
-                        
+
                         {comp.type === 'BODY' && (
                           <div className="space-y-3">
                             <div className="text-sm text-gray-700 whitespace-pre-wrap bg-white p-3 rounded-lg border border-gray-200">
                               {comp.text}
                             </div>
-                            
+
                             {/* Dynamic Parameter Inputs */}
                             {comp.text?.match(/\{\{(\d+)\}\}/g) && (
                               <div className="space-y-2">
@@ -818,7 +852,7 @@ export const Campaigns = () => {
                             )}
                           </div>
                         )}
-                        
+
                         {comp.type === 'FOOTER' && (
                           <div className="text-xs text-gray-500">{comp.text}</div>
                         )}
@@ -828,59 +862,108 @@ export const Campaigns = () => {
                 )}
 
                 {/* Contact Selection */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Select Contacts * ({formData.contactIds.length} selected)
-                    </label>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={selectAllContacts}
-                        className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
-                      >
-                        Select All
-                      </button>
-                      <span className="text-gray-300">|</span>
-                      <button
-                        type="button"
-                        onClick={deselectAllContacts}
-                        className="text-xs text-gray-600 hover:text-gray-700 font-medium"
-                      >
-                        Deselect All
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="border border-gray-200 rounded-xl max-h-60 overflow-y-auto">
-                    {contacts.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
-                        <Users className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                        <p className="text-sm">No contacts available</p>
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-gray-200">
-                        {contacts.map((contact) => (
-                          <label
-                            key={contact.id}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={formData.contactIds.includes(contact.id)}
-                              onChange={() => toggleContact(contact.id)}
-                              className="w-4 h-4 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500"
-                            />
-                            <div className="flex-1">
-                              <div className="font-medium text-gray-900 text-sm">{contact.name}</div>
-                              <div className="text-xs text-gray-500 font-mono">{contact.phoneNumber}</div>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                <div className="space-y-4">
+  {/* Header Section */}
+  <div className="flex items-center justify-between">
+    <label className="text-sm font-semibold text-gray-900">
+      Select Contacts
+      <span className="ml-2 text-xs font-normal text-gray-500">
+        ({formData.contactIds.length} selected)
+      </span>
+    </label>
+    
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={selectAllContacts}
+        className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
+      >
+        Select All
+      </button>
+      <span className="text-gray-300">•</span>
+      <button
+        type="button"
+        onClick={deselectAllContacts}
+        className="text-sm text-gray-600 hover:text-gray-700 font-medium transition-colors"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+
+  {/* Filters Section */}
+  <div className="grid grid-cols-2 gap-3">
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+        Filter by Tag
+      </label>
+      <select
+        value={tag}
+        onChange={(e) => setTag(e.target.value)}
+        className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-shadow bg-white"
+      >
+        <option value="">All Tags</option>
+        {tagsList?.map((tag: any) => (
+          <option key={tag} value={tag}>
+            {tag}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div>
+      <label className="block text-xs font-medium text-gray-700 mb-1.5">
+        Search Contacts
+      </label>
+      <input
+        type="text"
+        placeholder="Search by name or phone..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-shadow"
+      />
+    </div>
+  </div>
+
+  {/* Contacts List - Fixed Height */}
+  <div className="border border-gray-300 rounded-lg overflow-hidden">
+    <div className="h-60 overflow-y-auto">
+      {contacts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-gray-50">
+          <Users className="w-12 h-12 mb-3 text-gray-400" />
+          <p className="text-sm font-medium text-gray-900 mb-1">No contacts found</p>
+          <p className="text-xs text-gray-500">
+            {search || tag ? 'Try adjusting your filters' : 'Add contacts to get started'}
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-200">
+          {contacts.map((contact) => (
+            <label
+              key={contact.id}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 cursor-pointer transition-colors group"
+            >
+              <input
+                type="checkbox"
+                checked={formData.contactIds.includes(contact.id)}
+                onChange={() => toggleContact(contact.id)}
+                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {contact.name}
                 </div>
+                <div className="text-xs text-gray-600 font-mono mt-0.5">
+                  {contact.phoneNumber}
+                </div>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
                 {/* Schedule Date/Time */}
                 <div>
@@ -1043,8 +1126,8 @@ export const Campaigns = () => {
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <div
                         className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all"
-                        style={{ 
-                          width: `${(campaignStats.messagesSent / campaignStats.contactCount) * 100}%` 
+                        style={{
+                          width: `${(campaignStats.messagesSent / campaignStats.contactCount) * 100}%`
                         }}
                       />
                     </div>
@@ -1137,13 +1220,12 @@ export const Campaigns = () => {
                             {log.phoneNumber}
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              log.status === 'sent' ? 'bg-green-100 text-green-700' :
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${log.status === 'sent' ? 'bg-green-100 text-green-700' :
                               log.status === 'failed' ? 'bg-red-100 text-red-700' :
-                              log.status === 'delivered' ? 'bg-blue-100 text-blue-700' :
-                              log.status === 'read' ? 'bg-purple-100 text-purple-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
+                                log.status === 'delivered' ? 'bg-blue-100 text-blue-700' :
+                                  log.status === 'read' ? 'bg-purple-100 text-purple-700' :
+                                    'bg-gray-100 text-gray-700'
+                              }`}>
                               {log.status.toUpperCase()}
                             </span>
                           </td>

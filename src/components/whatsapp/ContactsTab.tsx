@@ -33,6 +33,8 @@ export const ContactsTab = () => {
   const [page, setPage] = useState(1);
   const [limit] = useState(7);
   const [total, setTotal] = useState(0);
+    const [tag, setTag] = useState("");
+
   const totalPages = Math.ceil(total / limit);
   const [loading, setLoading] = useState(false);
   const [loadingAdded, setLoadingAdded] = useState(false);
@@ -124,7 +126,7 @@ export const ContactsTab = () => {
 
     try {
       setIsImporting(true);
-      const result = await WAApi.importContacts(selectedFile);
+      const result = await WAApi.importContacts(selectedFile, tag);
       setImportResult(result);
       setShowImportModal(false);
       setShowImportResultModal(true);
@@ -133,10 +135,12 @@ export const ContactsTab = () => {
         fileInputRef.current.value = '';
       }
       await fetchContacts();
+       setTag("")
     } catch (error: any) {
       setShowError(error.message || 'Failed to import contacts');
     } finally {
       setIsImporting(false);
+     
     }
   };
   // Debounce search query
@@ -178,7 +182,7 @@ export const ContactsTab = () => {
         phone_number: formData.phoneNumber,
         name: formData.name,
         country_code: formData.countryCode,
-        // tag : formData?.tag ?? ''
+        tag : formData?.tag ?? ''
       };
 
       if (editingContact) {
@@ -295,6 +299,7 @@ export const ContactsTab = () => {
             <tr>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Phone</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Tag</th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Added On</th>
               <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
             </tr>
@@ -327,6 +332,7 @@ export const ContactsTab = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-700">{contact.phoneNumber}</td>
+                  <td className="px-6 py-4 text-gray-700">{contact?.tag ?? '--'}</td>
                   <td className="px-6 py-4 text-gray-700">
                     {new Date(contact.createdAt).toLocaleDateString()}
                   </td>
@@ -447,6 +453,18 @@ Bob Johnson,5551234567,+44`}
                 <Download className="w-4 h-4" />
                 Download Template CSV
               </button>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tag (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder='my_new_lead'
+                    value={tag}
+                    onChange={(e :any) => setTag(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                    required
+                  />
+                </div>
 
               {/* File Upload */}
               <div className="mb-4">
@@ -740,14 +758,11 @@ Bob Johnson,5551234567,+44`}
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tag (optional)</label>
                   <input
                     type="text"
+                    disabled={false}
                     value={formData.tag}
                     onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none 
-                      ${editingContact
-                        ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300"
-                        : "border-gray-200"
-                      }`}
-                    required
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                    // required
                   />
                 </div>
 
